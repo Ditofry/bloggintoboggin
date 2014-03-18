@@ -13,9 +13,16 @@ end
 class FibText
   
   def initialize(text = nil)
-    dummy = 'Here is a little bit of dummy text in fibonacci form.
-    Eventually this will be text from the outside world.  I may even build
-    a real-time text-pyramid creation tool.  What an adventure!'
+    dummy = 'Banksy Tumblr gastropub stumptown kitsch gluten-free. 
+    Dreamcatcher slow-carb roof party, gastropub disrupt biodiesel 
+    YOLO Banksy tote bag. Pop-up vinyl bitters, post-ironic sustainable 
+    master cleanse Schlitz Thundercats leggings sriracha. Four loko 
+    8-bit street art, mixtape tousled paleo aesthetic banh mi. Kale 
+    chips swag photo booth, bespoke literally flannel distillery 
+    scenester chillwave meh Bushwick shabby chic flexitarian Tonx 
+    slow-carb. Selfies readymade roof party narwhal messenger bag. Trust 
+    fund twee fap synth keffiyeh next level sustainable Austin, selvage 
+    disrupt Wes Anderson ethnic Bushwick pug.'
     @text = text ? text : dummy
   end
 
