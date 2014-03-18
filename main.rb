@@ -2,7 +2,8 @@ require 'sinatra'
 set :static, true
 
 get '/' do
-  "Well hello, world."
+  "hello, world."
+  erb :index
 end
 
 get '/fibonacci' do 
