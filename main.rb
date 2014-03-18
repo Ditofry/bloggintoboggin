@@ -1,4 +1,5 @@
 require 'sinatra'
+set :static, true
 
 get '/' do
   "Well hello, world."
@@ -47,7 +48,7 @@ class FibText
     a = @text.split(' ')
     i = 3
     low_bound = 1
-    content = ''
+    content = '<div class="row">'
     # Fib sequence
     f = ->(x){ x < 2 ? x : f[x-1] + f[x-2] }
     # Build Pyramid
@@ -62,15 +63,14 @@ class FibText
       end
       low_bound = upp_bound
       if a.length > 0 
-        content += "<br>"
+        content += "</div><div class='row'>"
       end
     end
     return content
   end
 
 end
-
-# 
+ 
 # We eventually want to center it, to make a pyramid
 # 
 # We may want to find the size of the final row immediately to determine width
