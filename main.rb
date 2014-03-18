@@ -6,13 +6,15 @@ end
 
 get '/fibonacci' do 
   f = FibText.new
-  f.fibonize_web
+  erb f.fibonize_web
 end
 
 class FibText
   
   def initialize(text = nil)
-    dummy = 'Here is a little bit of dummy text in fibonacci form'
+    dummy = 'Here is a little bit of dummy text in fibonacci form.
+    Eventually this will be text from the outside world.  I may even build
+    a real-time text-pyramid creation tool.  What an adventure!'
     @text = text ? text : dummy
   end
 
@@ -55,7 +57,7 @@ class FibText
       fib_size = upp_bound - low_bound
       fib_size.times do
         if a.length > 0 
-          content += '<div class="word">' a.shift + '</div>' 
+          content += '<div class="word">' + a.shift + '</div>' 
         end
       end
       low_bound = upp_bound
@@ -68,15 +70,6 @@ class FibText
 
 end
 
-# F(n) = F(n-1) + F(n-2)
-# Then each member of the fibonacci sequence is defined by the sum of 
-# the two preceding numbers
-#
-# We'll want to split the input text into an array, with space as a word delimeter:
-# string.split(' ')
-# 
-# Once we have our array, we'll need to chunk through it and place words in the 
-# right place
 # 
 # We eventually want to center it, to make a pyramid
 # 
