@@ -3,7 +3,8 @@ require 'haml'
 require 'coffee-script'
 require 'data_mapper'
 
-set :static, true
+set :views, File.dirname(__FILE__) + "/views"
+use Rack::Static, :urls => ['/css', '/js'], :root => 'public'
 
 get '/' do
   "hello, world."
