@@ -8,7 +8,7 @@ end
 
 get '/fibonacci' do 
   f = FibText.new
-  erb f.fibonize_web
+  erb f.fibonize_web()
 end
 
 class FibText
@@ -79,6 +79,8 @@ class FibText
 
 end
  
+# Perhaps fibonize should return an array.  The markup and iterration should be done in a template.
+#
 # We eventually want to center it, to make a pyramid
 # 
 # We may want to find the size of the final row immediately to determine width
