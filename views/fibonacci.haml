@@ -1,2 +1,6 @@
 .pyramid
-  =@content
+  - @content.each do |row|
+    .row
+      - row.each do |w|
+        .word
+          = w

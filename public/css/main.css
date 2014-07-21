@@ -31,7 +31,7 @@ body {
     margin: 0px auto;
 }
 
-#about {
+#home {
   background: black;
   color: white;
   padding: 8px;
@@ -41,11 +41,25 @@ body {
   position: fixed;
   bottom: 0px;
   left: 0px;
+  z-index: 10;
+}
+
+#about {
+  background: black;
+  color: white;
+  padding: 8px;
+  text-align: center;
+  text-decoration: none;
+  font-weight: 200;
+  position: fixed;
+  bottom: 0px;
+  right: 0px;
+  z-index: 10;
 }
 
 ul.list {
   margin: 80px auto;
-  width: 300px;
+  padding: 0px;
 }
 
 ul.list li {
@@ -54,4 +68,10 @@ ul.list li {
 
 ul.list li a {
   text-decoration: none;
+}
+
+.reading {
+  width: 100%;
+  max-width: 650px;
+  margin: 0px auto;
 }

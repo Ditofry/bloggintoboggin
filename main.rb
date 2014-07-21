@@ -11,7 +11,7 @@ end
 
 get '/fibonacci' do
   f = FibText.new
-  @content = f.fibonize_web()
+  @content = f.fibonize()
   haml :fibonacci
 end
 
@@ -35,18 +35,13 @@ class FibText
     @text = text ? text : dummy
   end
 
-  # Perhaps fibonize should return an array.  The markup and iterration should be done in a template.
-  #
-  # We eventually want to center it, to make a pyramid
-  #
-  # We may want to find the size of the final row immediately to determine width
-  # of base and the positioning of each element
-
   def fibonize
     a = @text.split(' ')
     i = 3
+    row = 0
     low_bound = 1
-    content = ''
+    content = Array.new
+    content[row] = Array.new
     # Fib sequence
     f = ->(x){ x < 2 ? x : f[x-1] + f[x-2] }
     # Build Pyramid
@@ -56,37 +51,13 @@ class FibText
       fib_size = upp_bound - low_bound
       fib_size.times do
         if a.length > 0
-          content += a.shift + ' '
+          content[row] << a.shift
         end
       end
       low_bound = upp_bound
       if a.length > 0
-        content += "\n"
-      end
-    end
-    return content
-  end
-
-  def fibonize_web
-    a = @text.split(' ')
-    i = 3
-    low_bound = 1
-    content = '<div class="row">'
-    # Fib sequence
-    f = ->(x){ x < 2 ? x : f[x-1] + f[x-2] }
-    # Build Pyramid
-    while a.any?
-      upp_bound = f[i]
-      i += 1
-      fib_size = upp_bound - low_bound
-      fib_size.times do
-        if a.length > 0
-          content += '<div class="word">' + a.shift + '</div>'
-        end
-      end
-      low_bound = upp_bound
-      if a.length > 0
-        content += "</div><div class='row'>"
+        row += 1
+        content[row] = Array.new
       end
     end
     return content
