@@ -1,3 +1,7 @@
+ul {
+  list-style-type: none;
+}
+
 #pyramid {
   width: auto;
   overflow-x: scroll;
@@ -25,4 +29,29 @@
 body {
     width: 90%;
     margin: 0px auto;
+}
+
+#about {
+  background: black;
+  color: white;
+  padding: 8px;
+  text-align: center;
+  text-decoration: none;
+  font-weight: 200;
+  position: fixed;
+  bottom: 0px;
+  left: 0px;
+}
+
+ul.list {
+  margin: 80px auto;
+  width: 300px;
+}
+
+ul.list li {
+  text-align: center;
+}
+
+ul.list li a {
+  text-decoration: none;
 }

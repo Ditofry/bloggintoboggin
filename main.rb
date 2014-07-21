@@ -1,31 +1,46 @@
 require 'sinatra'
+require 'haml'
+require 'coffee-script'
+
 set :static, true
 
 get '/' do
   "hello, world."
-  erb :index
+  haml :index
 end
 
-get '/fibonacci' do 
+get '/fibonacci' do
   f = FibText.new
-  erb f.fibonize_web()
+  @content = f.fibonize_web()
+  haml :fibonacci
+end
+
+get '/about' do
+  haml :about
 end
 
 class FibText
-  
+
   def initialize(text = nil)
-    dummy = 'Banksy Tumblr gastropub stumptown kitsch gluten-free. 
-    Dreamcatcher slow-carb roof party, gastropub disrupt biodiesel 
-    YOLO Banksy tote bag. Pop-up vinyl bitters, post-ironic sustainable 
-    master cleanse Schlitz Thundercats leggings sriracha. Four loko 
-    8-bit street art, mixtape tousled paleo aesthetic banh mi. Kale 
-    chips swag photo booth, bespoke literally flannel distillery 
-    scenester chillwave meh Bushwick shabby chic flexitarian Tonx 
-    slow-carb. Selfies readymade roof party narwhal messenger bag. Trust 
-    fund twee fap synth keffiyeh next level sustainable Austin, selvage 
+    dummy = 'Banksy Tumblr gastropub stumptown kitsch gluten-free.
+    Dreamcatcher slow-carb roof party, gastropub disrupt biodiesel
+    YOLO Banksy tote bag. Pop-up vinyl bitters, post-ironic sustainable
+    master cleanse Schlitz Thundercats leggings sriracha. Four loko
+    8-bit street art, mixtape tousled paleo aesthetic banh mi. Kale
+    chips swag photo booth, bespoke literally flannel distillery
+    scenester chillwave meh Bushwick shabby chic flexitarian Tonx
+    slow-carb. Selfies readymade roof party narwhal messenger bag. Trust
+    fund twee fap synth keffiyeh next level sustainable Austin, selvage
     disrupt Wes Anderson ethnic Bushwick pug.'
     @text = text ? text : dummy
   end
+
+  # Perhaps fibonize should return an array.  The markup and iterration should be done in a template.
+  #
+  # We eventually want to center it, to make a pyramid
+  #
+  # We may want to find the size of the final row immediately to determine width
+  # of base and the positioning of each element
 
   def fibonize
     a = @text.split(' ')
@@ -40,12 +55,12 @@ class FibText
       i += 1
       fib_size = upp_bound - low_bound
       fib_size.times do
-        if a.length > 0 
-          content += a.shift + ' ' 
+        if a.length > 0
+          content += a.shift + ' '
         end
       end
       low_bound = upp_bound
-      if a.length > 0 
+      if a.length > 0
         content += "\n"
       end
     end
@@ -65,12 +80,12 @@ class FibText
       i += 1
       fib_size = upp_bound - low_bound
       fib_size.times do
-        if a.length > 0 
-          content += '<div class="word">' + a.shift + '</div>' 
+        if a.length > 0
+          content += '<div class="word">' + a.shift + '</div>'
         end
       end
       low_bound = upp_bound
-      if a.length > 0 
+      if a.length > 0
         content += "</div><div class='row'>"
       end
     end
@@ -78,10 +93,3 @@ class FibText
   end
 
 end
- 
-# Perhaps fibonize should return an array.  The markup and iterration should be done in a template.
-#
-# We eventually want to center it, to make a pyramid
-# 
-# We may want to find the size of the final row immediately to determine width
-# of base and the positioning of each element
