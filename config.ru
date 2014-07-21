@@ -1,2 +1,5 @@
-require 'my_app'
-run MyApp.new
+require 'bundler'
+Bundler.require
+require './main'
+
+run Sinatra::Application

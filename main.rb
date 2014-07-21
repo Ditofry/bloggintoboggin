@@ -1,6 +1,7 @@
 require 'sinatra'
 require 'haml'
 require 'coffee-script'
+require 'data_mapper'
 
 set :static, true
 
