@@ -21,6 +21,10 @@ get '/about' do
   haml :about
 end
 
+get '/robo' do
+  haml :robo, layout: :threejs
+end
+
 class FibText
 
   def initialize(text = nil)
