@@ -25,6 +25,18 @@ get '/robo' do
   haml :robo, layout: :threejs
 end
 
+get '/birds' do
+  haml :birds, layout: :threejs
+end
+
+get '/svg-experiments' do
+  haml :svg_experiments
+end
+
+get '/pg-user-defined-functions' do
+  haml :pg_udf
+end
+
 class FibText
 
   def initialize(text = nil)

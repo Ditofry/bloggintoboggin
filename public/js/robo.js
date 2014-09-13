@@ -1,148 +1,376 @@
-var container;
+// Based on http://www.openprocessing.org/visuals/?visualID=6910
+var Bird = function () {
 
-var camera, scene, renderer;
+	var scope = this;
 
-var mesh, group1, group2, group3, light;
+	THREE.Geometry.call( this );
 
-var mouseX = 0, mouseY = 0;
+	v(   5,   0,   0 );
+	v( - 5, - 2,   1 );
+	v( - 5,   0,   0 );
+	v( - 5, - 2, - 1 );
 
-var windowHalfX = window.innerWidth / 2;
-var windowHalfY = window.innerHeight / 2;
+	v(   0,   2, - 6 );
+	v(   0,   2,   6 );
+	v(   2,   0,   0 );
+	v( - 3,   0,   0 );
+
+	f3( 0, 2, 1 );
+	// f3( 0, 3, 2 );
+
+	f3( 4, 7, 6 );
+	f3( 5, 6, 7 );
+
+	this.computeFaceNormals();
+
+	function v( x, y, z ) {
+
+		scope.vertices.push( new THREE.Vector3( x, y, z ) );
+
+	}
+
+	function f3( a, b, c ) {
+
+		scope.faces.push( new THREE.Face3( a, b, c ) );
+
+	}
+
+}
+
+Bird.prototype = Object.create( THREE.Geometry.prototype );
+
+
+var Boid = function() {
+
+	var vector = new THREE.Vector3(),
+	_acceleration, _width = 500, _height = 500, _depth = 200, _goal, _neighborhoodRadius = 100,
+	_maxSpeed = 4, _maxSteerForce = 0.1, _avoidWalls = false;
+
+	this.position = new THREE.Vector3();
+	this.velocity = new THREE.Vector3();
+	_acceleration = new THREE.Vector3();
+
+	this.setGoal = function ( target ) {
+
+		_goal = target;
+
+	}
+
+	this.setAvoidWalls = function ( value ) {
+
+		_avoidWalls = value;
+
+	}
+
+	this.setWorldSize = function ( width, height, depth ) {
+
+		_width = width;
+		_height = height;
+		_depth = depth;
+
+	}
+
+	this.run = function ( boids ) {
+
+		if ( _avoidWalls ) {
+
+			vector.set( - _width, this.position.y, this.position.z );
+			vector = this.avoid( vector );
+			vector.multiplyScalar( 5 );
+			_acceleration.add( vector );
+
+			vector.set( _width, this.position.y, this.position.z );
+			vector = this.avoid( vector );
+			vector.multiplyScalar( 5 );
+			_acceleration.add( vector );
+
+			vector.set( this.position.x, - _height, this.position.z );
+			vector = this.avoid( vector );
+			vector.multiplyScalar( 5 );
+			_acceleration.add( vector );
+
+			vector.set( this.position.x, _height, this.position.z );
+			vector = this.avoid( vector );
+			vector.multiplyScalar( 5 );
+			_acceleration.add( vector );
+
+			vector.set( this.position.x, this.position.y, - _depth );
+			vector = this.avoid( vector );
+			vector.multiplyScalar( 5 );
+			_acceleration.add( vector );
+
+			vector.set( this.position.x, this.position.y, _depth );
+			vector = this.avoid( vector );
+			vector.multiplyScalar( 5 );
+			_acceleration.add( vector );
+
+		}/* else {
+
+			this.checkBounds();
+
+		}
+		*/
+
+		if ( Math.random() > 0.5 ) {
+
+			this.flock( boids );
+
+		}
+
+		this.move();
+
+	}
+
+	this.flock = function ( boids ) {
+
+		if ( _goal ) {
+
+			_acceleration.add( this.reach( _goal, 0.005 ) );
+
+		}
+
+		_acceleration.add( this.alignment( boids ) );
+		_acceleration.add( this.cohesion( boids ) );
+		_acceleration.add( this.separation( boids ) );
+
+	}
+
+	this.move = function () {
+
+		this.velocity.add( _acceleration );
+
+		var l = this.velocity.length();
+
+		if ( l > _maxSpeed ) {
+
+			this.velocity.divideScalar( l / _maxSpeed );
+
+		}
+
+		this.position.add( this.velocity );
+		_acceleration.set( 0, 0, 0 );
+
+	}
+
+	this.checkBounds = function () {
+
+		if ( this.position.x >   _width ) this.position.x = - _width;
+		if ( this.position.x < - _width ) this.position.x =   _width;
+		if ( this.position.y >   _height ) this.position.y = - _height;
+		if ( this.position.y < - _height ) this.position.y =  _height;
+		if ( this.position.z >  _depth ) this.position.z = - _depth;
+		if ( this.position.z < - _depth ) this.position.z =  _depth;
+
+	}
+
+	this.avoid = function ( target ) {
+
+		var steer = new THREE.Vector3();
+
+		steer.copy( this.position );
+		steer.sub( target );
+
+		steer.multiplyScalar( 1 / this.position.distanceToSquared( target ) );
+
+		return steer;
+
+	}
+
+	this.repulse = function ( target ) {
+
+		var distance = this.position.distanceTo( target );
+
+		if ( distance < 150 ) {
+
+			var steer = new THREE.Vector3();
+
+			steer.subVectors( this.position, target );
+			steer.multiplyScalar( 0.5 / distance );
+
+			_acceleration.add( steer );
+
+		}
+
+	}
+
+	this.reach = function ( target, amount ) {
+
+		var steer = new THREE.Vector3();
+
+		steer.subVectors( target, this.position );
+		steer.multiplyScalar( amount );
+
+		return steer;
+
+	}
+
+	this.alignment = function ( boids ) {
+
+		var boid, velSum = new THREE.Vector3(),
+		count = 0;
+
+		for ( var i = 0, il = boids.length; i < il; i++ ) {
+
+			if ( Math.random() > 0.6 ) continue;
+
+			boid = boids[ i ];
+
+			distance = boid.position.distanceTo( this.position );
+
+			if ( distance > 0 && distance <= _neighborhoodRadius ) {
+
+				velSum.add( boid.velocity );
+				count++;
+
+			}
+
+		}
+
+		if ( count > 0 ) {
+
+			velSum.divideScalar( count );
+
+			var l = velSum.length();
+
+			if ( l > _maxSteerForce ) {
+
+				velSum.divideScalar( l / _maxSteerForce );
+
+			}
+
+		}
+
+		return velSum;
+
+	}
+
+	this.cohesion = function ( boids ) {
+
+		var boid, distance,
+		posSum = new THREE.Vector3(),
+		steer = new THREE.Vector3(),
+		count = 0;
+
+		for ( var i = 0, il = boids.length; i < il; i ++ ) {
+
+			if ( Math.random() > 0.6 ) continue;
+
+			boid = boids[ i ];
+			distance = boid.position.distanceTo( this.position );
+
+			if ( distance > 0 && distance <= _neighborhoodRadius ) {
+
+				posSum.add( boid.position );
+				count++;
+
+			}
+
+		}
+
+		if ( count > 0 ) {
+
+			posSum.divideScalar( count );
+
+		}
+
+		steer.subVectors( posSum, this.position );
+
+		var l = steer.length();
+
+		if ( l > _maxSteerForce ) {
+
+			steer.divideScalar( l / _maxSteerForce );
+
+		}
+
+		return steer;
+
+	}
+
+	this.separation = function ( boids ) {
+
+		var boid, distance,
+		posSum = new THREE.Vector3(),
+		repulse = new THREE.Vector3();
+
+		for ( var i = 0, il = boids.length; i < il; i ++ ) {
+
+			if ( Math.random() > 0.6 ) continue;
+
+			boid = boids[ i ];
+			distance = boid.position.distanceTo( this.position );
+
+			if ( distance > 0 && distance <= _neighborhoodRadius ) {
+
+				repulse.subVectors( this.position, boid.position );
+				repulse.normalize();
+				repulse.divideScalar( distance );
+				posSum.add( repulse );
+
+			}
+
+		}
+
+		return posSum;
+
+	}
+
+}
+
+var SCREEN_WIDTH = window.innerWidth,
+SCREEN_HEIGHT = window.innerHeight,
+SCREEN_WIDTH_HALF = SCREEN_WIDTH  / 2,
+SCREEN_HEIGHT_HALF = SCREEN_HEIGHT / 2;
+
+var camera, scene, renderer,
+birds, bird;
+
+var boid, boids;
 
 init();
 animate();
 
 function init() {
 
-	container = document.getElementById( 'container' );
-
-	camera = new THREE.PerspectiveCamera( 20, window.innerWidth / window.innerHeight, 1, 10000 );
-	camera.position.z = 1800;
+	camera = new THREE.PerspectiveCamera( 75, SCREEN_WIDTH / SCREEN_HEIGHT, 1, 10000 );
+	camera.position.z = 450;
 
 	scene = new THREE.Scene();
 
-	light = new THREE.DirectionalLight( 0xffffff );
-	light.position.set( 0, 0, 1 );
-	scene.add( light );
+	birds = [];
+	boids = [];
 
-	// shadow
+	for ( var i = 0; i < 200; i ++ ) {
 
-	var canvas = document.createElement( 'canvas' );
-	canvas.width = 128;
-	canvas.height = 128;
+		boid = boids[ i ] = new Boid();
+		boid.position.x = Math.random() * 400 - 200;
+		boid.position.y = Math.random() * 400 - 200;
+		boid.position.z = Math.random() * 400 - 200;
+		boid.velocity.x = Math.random() * 2 - 1;
+		boid.velocity.y = Math.random() * 2 - 1;
+		boid.velocity.z = Math.random() * 2 - 1;
+		boid.setAvoidWalls( true );
+		boid.setWorldSize( 500, 500, 400 );
 
-	var context = canvas.getContext( '2d' );
-	var gradient = context.createRadialGradient( canvas.width / 2, canvas.height / 2, 0, canvas.width / 2, canvas.height / 2, canvas.width / 2 );
-	gradient.addColorStop( 0.1, 'rgba(210,210,210,1)' );
-	gradient.addColorStop( 1, 'rgba(255,255,255,1)' );
+		bird = birds[ i ] = new THREE.Mesh( new Bird(), new THREE.MeshBasicMaterial( { color:Math.random() * 0xffffff, side: THREE.DoubleSide } ) );
+		bird.phase = Math.floor( Math.random() * 62.83 );
+		scene.add( bird );
 
-	context.fillStyle = gradient;
-	context.fillRect( 0, 0, canvas.width, canvas.height );
-
-	var shadowTexture = new THREE.Texture( canvas );
-	shadowTexture.needsUpdate = true;
-
-	var shadowMaterial = new THREE.MeshBasicMaterial( { map: shadowTexture } );
-	var shadowGeo = new THREE.PlaneGeometry( 300, 300, 1, 1 );
-
-	mesh = new THREE.Mesh( shadowGeo, shadowMaterial );
-	mesh.position.y = - 250;
-	mesh.rotation.x = - Math.PI / 2;
-	scene.add( mesh );
-
-	mesh = new THREE.Mesh( shadowGeo, shadowMaterial );
-	mesh.position.y = - 250;
-	mesh.position.x = - 400;
-	mesh.rotation.x = - Math.PI / 2;
-	scene.add( mesh );
-
-	mesh = new THREE.Mesh( shadowGeo, shadowMaterial );
-	mesh.position.y = - 250;
-	mesh.position.x = 400;
-	mesh.rotation.x = - Math.PI / 2;
-	scene.add( mesh );
-
-	var faceIndices = [ 'a', 'b', 'c', 'd' ];
-
-	var color, f, f2, f3, p, n, vertexIndex,
-
-		radius = 200,
-
-		geometry  = new THREE.IcosahedronGeometry( radius, 1 ),
-		geometry2 = new THREE.IcosahedronGeometry( radius, 1 ),
-		geometry3 = new THREE.IcosahedronGeometry( radius, 1 );
-
-	for ( var i = 0; i < geometry.faces.length; i ++ ) {
-
-		f  = geometry.faces[ i ];
-		f2 = geometry2.faces[ i ];
-		f3 = geometry3.faces[ i ];
-
-		n = ( f instanceof THREE.Face3 ) ? 3 : 4;
-
-		for( var j = 0; j < n; j++ ) {
-
-			vertexIndex = f[ faceIndices[ j ] ];
-
-			p = geometry.vertices[ vertexIndex ];
-
-			color = new THREE.Color( 0xffffff );
-			color.setHSL( ( p.y / radius + 1 ) / 2, 1.0, 0.5 );
-
-			f.vertexColors[ j ] = color;
-
-			color = new THREE.Color( 0xffffff );
-			color.setHSL( 0.0, ( p.y / radius + 1 ) / 2, 0.5 );
-
-			f2.vertexColors[ j ] = color;
-
-			color = new THREE.Color( 0xffffff );
-			color.setHSL( 0.125 * vertexIndex/geometry.vertices.length, 1.0, 0.5 );
-
-			f3.vertexColors[ j ] = color;
-
-		}
 
 	}
 
-
-	var materials = [
-
-		new THREE.MeshLambertMaterial( { color: 0xffffff, shading: THREE.FlatShading, vertexColors: THREE.VertexColors } ),
-		new THREE.MeshBasicMaterial( { color: 0x000000, shading: THREE.FlatShading, wireframe: true, transparent: true } )
-
-	];
-
-	group1 = THREE.SceneUtils.createMultiMaterialObject( geometry, materials );
-	group1.position.x = -400;
-	group1.rotation.x = -1.87;
-	scene.add( group1 );
-
-	group2 = THREE.SceneUtils.createMultiMaterialObject( geometry2, materials );
-	group2.position.x = 400;
-	group2.rotation.x = 0;
-	scene.add( group2 );
-
-	group3 = THREE.SceneUtils.createMultiMaterialObject( geometry3, materials );
-	group3.position.x = 0;
-	group3.rotation.x = 0;
-	scene.add( group3 );
-
-	renderer = new THREE.WebGLRenderer( { antialias: true } );
+	renderer = new THREE.CanvasRenderer();
 	renderer.setClearColor( 0xffffff );
-	renderer.setSize( window.innerWidth, window.innerHeight );
-
-	container.appendChild( renderer.domElement );
+	renderer.setSize( SCREEN_WIDTH, SCREEN_HEIGHT );
 
 	document.addEventListener( 'mousemove', onDocumentMouseMove, false );
+	document.body.appendChild( renderer.domElement );
+
 	window.addEventListener( 'resize', onWindowResize, false );
 
 }
 
 function onWindowResize() {
-
-	windowHalfX = window.innerWidth / 2;
-	windowHalfY = window.innerHeight / 2;
 
 	camera.aspect = window.innerWidth / window.innerHeight;
 	camera.updateProjectionMatrix();
@@ -153,8 +381,17 @@ function onWindowResize() {
 
 function onDocumentMouseMove( event ) {
 
-	mouseX = ( event.clientX - windowHalfX );
-	mouseY = ( event.clientY - windowHalfY );
+	var vector = new THREE.Vector3( event.clientX - SCREEN_WIDTH_HALF, - event.clientY + SCREEN_HEIGHT_HALF, 0 );
+
+	for ( var i = 0, il = boids.length; i < il; i++ ) {
+
+		boid = boids[ i ];
+
+		vector.z = boid.position.z;
+
+		boid.repulse( vector );
+
+	}
 
 }
 
@@ -170,10 +407,24 @@ function animate() {
 
 function render() {
 
-	camera.position.x += ( mouseX - camera.position.x ) * 0.05;
-	camera.position.y += ( - mouseY - camera.position.y ) * 0.05;
+	for ( var i = 0, il = birds.length; i < il; i++ ) {
 
-	camera.lookAt( scene.position );
+		boid = boids[ i ];
+		boid.run( boids );
+
+		bird = birds[ i ];
+		bird.position.copy( boids[ i ].position );
+
+		color = bird.material.color;
+		color.r = color.g = color.b = ( 500 - bird.position.z ) / 1000;
+
+		bird.rotation.y = Math.atan2( - boid.velocity.z, boid.velocity.x );
+		bird.rotation.z = Math.asin( boid.velocity.y / boid.velocity.length() );
+
+		bird.phase = ( bird.phase + ( Math.max( 0, bird.rotation.z ) + 0.1 )  ) % 62.83;
+		bird.geometry.vertices[ 5 ].y = bird.geometry.vertices[ 4 ].y = Math.sin( bird.phase ) * 5;
+
+	}
 
 	renderer.render( scene, camera );
 
